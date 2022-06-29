@@ -2,16 +2,15 @@ package main
 
 import (
 	"fmt"
-	"monitor/monitor/markets"
-	"monitor/monitor/discord"
-	"time"
 	"math"
+	"monitor/monitor/discord"
+	"monitor/monitor/markets"
+	"time"
 )
-
 
 func main() {
 	ten, err := time.ParseDuration("10m")
-	
+
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -28,23 +27,28 @@ func main() {
 	binance_prices := make(chan float64)
 	go markets.MonitorBinancePrice(binance_prices)
 
+	bybit_prices := make(chan float64)
+	go markets.MonitorByBitPrice(bybit_prices)
+
 	for {
 		garantex_price := <-garantex_prices
-		binance_price := <- binance_prices
+		binance_price := <-binance_prices
+		<-bybit_prices
 
-		if math.Abs(garantex_price - binance_price) > 1.0 && time.Since(lastReport) >= ten {
+		if math.Abs(garantex_price-binance_price) > 1.0 && time.Since(lastReport) >= ten {
 			lastReport = time.Now()
 
 			message := fmt.Sprintf("binance price: %g\ngarantex price: %g\nspread: %g",
 				binance_price,
 				garantex_price,
-				math.Abs(garantex_price - binance_price),
+				math.Abs(garantex_price-binance_price),
 			)
 
 			fmt.Println(message)
 
+			messages <- message
 		}
-		
+
 		time.Sleep(10 * time.Second)
 	}
 }

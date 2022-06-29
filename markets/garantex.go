@@ -2,8 +2,8 @@ package markets
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -21,16 +21,13 @@ func MonitorGarantexPrice(prices chan float64) {
 		resp, err := http.Get("https://garantex.io/api/v2/depth?market=usdtrub")
 
 		if err != nil {
-			fmt.Println(err)
-			return
+			log.Fatal(err)
 		}
 
 		body, err := ioutil.ReadAll(resp.Body)
-		defer resp.Body.Close()
 
 		if err != nil {
-			fmt.Println(err)
-			return
+			log.Fatal(err)
 		}
 
 		var depth Depth
@@ -38,7 +35,12 @@ func MonitorGarantexPrice(prices chan float64) {
 		json.Unmarshal(body, &depth)
 
 		price, err := strconv.ParseFloat(depth.Asks[0].Price, 64)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		prices <- price
+
+		resp.Body.Close()
 	}
-	close(prices)
 }

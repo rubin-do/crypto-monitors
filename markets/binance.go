@@ -32,7 +32,7 @@ type response struct {
 }
 
 func MonitorBinancePrice(prices chan float64) {
-	values := request{1, 1, []string{"Tinkoff"}, nil, nil, "USDT", "RUB", "BUY"}
+	values := request{1, 1, []string{"Tinkoff", "RosBank"}, nil, nil, "USDT", "RUB", "BUY"}
 	json_data, err := json.Marshal(values)
 
 	if err != nil {

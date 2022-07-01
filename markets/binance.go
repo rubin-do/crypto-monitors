@@ -3,6 +3,7 @@ package markets
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -20,18 +21,22 @@ type request struct {
 }
 
 type second struct {
-	Price string
+	Price                string
+	TradableQuantity     string
+	MinSingleTransAmount string
+	MaxSingleTransAmount string
 }
 
 type first struct {
-	Adv second
+	Adv        second
+	Advertiser map[string]string
 }
 
 type response struct {
 	Data []first
 }
 
-func MonitorBinancePrice(prices chan float64) {
+func MonitorBinancePrice(orders chan Order) {
 	values := request{1, 1, []string{"Tinkoff", "RosBank"}, nil, nil, "USDT", "RUB", "BUY"}
 	json_data, err := json.Marshal(values)
 
@@ -56,6 +61,15 @@ func MonitorBinancePrice(prices chan float64) {
 			log.Fatal(err)
 		}
 
-		prices <- price
+		bestOrder := Order{}
+		bestOrder.Market = "Binance"
+		bestOrder.SellerName = resp_json.Data[0].Advertiser["nickName"]
+		bestOrder.Price = price
+		bestOrder.MaxAmount = resp_json.Data[0].Adv.MaxSingleTransAmount
+		bestOrder.MinAmount = resp_json.Data[0].Adv.MinSingleTransAmount
+		bestOrder.Quantity = resp_json.Data[0].Adv.TradableQuantity
+		bestOrder.Url = fmt.Sprintf("https://p2p.binance.com/en/advertiserDetail?advertiserNo=%s", resp_json.Data[0].Advertiser["userNo"])
+
+		orders <- bestOrder
 	}
 }

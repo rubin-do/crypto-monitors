@@ -1,19 +1,43 @@
 package discord
 
 import (
-//	"fmt"
-	"github.com/DisgoOrg/disgohook"
-//	"strconv"
+	"fmt"
+	"log"
+	"monitor/monitor/markets"
+	"time"
+
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/webhook"
+	"github.com/disgoorg/snowflake/v2"
 )
 
-func DiscordSender(data chan string) {
-	webhook, err := disgohook.NewWebhookClientByToken(nil, nil, "990357629031309392/UnIMrvtS8_NIdtJpwlNl11Mxn38N1ddlfUKPyQ8iZ4ctDz1NBLtPf74a24TvMbhj61Qv")
+type BestOrderPair struct {
+	BuyOrderInfo  markets.Order
+	SellOrderInfo markets.Order
+}
 
-	if err != nil {
-		panic(err)
-	}
+func DiscordSender(data chan BestOrderPair) {
+
+	client := webhook.New(snowflake.ID(990357629031309392), "UnIMrvtS8_NIdtJpwlNl11Mxn38N1ddlfUKPyQ8iZ4ctDz1NBLtPf74a24TvMbhj61Qv")
 
 	for {
-		webhook.SendContent(<-data)
+		pair := <-data
+
+		_, err := client.CreateEmbeds([]discord.Embed{discord.NewEmbedBuilder().
+			SetTitle(pair.BuyOrderInfo.Market).
+			SetAuthor(pair.BuyOrderInfo.SellerName, "", "").
+			SetURL(pair.BuyOrderInfo.Url).
+			SetFooterText(fmt.Sprintf("Spread: %g", pair.SellOrderInfo.Price-pair.BuyOrderInfo.Price)).
+			AddField("Price", fmt.Sprintf("%g", pair.BuyOrderInfo.Price), false).
+			AddField("Quantity", pair.BuyOrderInfo.Quantity, false).
+			AddField("MinAmount", pair.BuyOrderInfo.MinAmount, false).
+			AddField("MaxAmount", pair.BuyOrderInfo.MaxAmount, false).
+			AddField(pair.SellOrderInfo.Market, fmt.Sprintf("%g", pair.SellOrderInfo.Price), false).
+			SetTimestamp(time.Now()).
+			Build()})
+
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }

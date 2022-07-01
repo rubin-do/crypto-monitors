@@ -16,7 +16,7 @@ type Depth struct {
 	Asks []Ask `json:"asks"`
 }
 
-func MonitorGarantexPrice(prices chan float64) {
+func MonitorGarantexPrice(orders chan Order) {
 	for {
 		resp, err := http.Get("https://garantex.io/api/v2/depth?market=usdtrub")
 
@@ -33,14 +33,24 @@ func MonitorGarantexPrice(prices chan float64) {
 		var depth Depth
 
 		json.Unmarshal(body, &depth)
+		resp.Body.Close()
 
 		price, err := strconv.ParseFloat(depth.Asks[0].Price, 64)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		prices <- price
+		bestOrder := Order{
+			"Garantex",
+			"Market",
+			price,
+			"-",
+			"-",
+			"-",
+			"https://garantex.io/trading/usdtrub",
+		}
 
-		resp.Body.Close()
+		orders <- bestOrder
+
 	}
 }

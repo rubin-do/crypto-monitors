@@ -43,8 +43,8 @@ func MonitorByBitPrice(orders chan Order) {
 	for {
 		resp, err := http.PostForm("https://api2.bybit.com/spot/api/otc/item/list", values)
 
-		if err != nil {
-			log.Fatal(err)
+		if err != nil || resp.StatusCode != 200 {
+			log.Fatal(resp, err)
 		}
 
 		var response_json response_bybit

@@ -13,15 +13,17 @@ func TestDiscord(t *testing.T) {
 		BuyOrderInfo: markets.Order{
 			Market:     "TestSource",
 			SellerName: "TestSeller",
-			Price:      50.0,
+			BuyPrice:   50.0,
+			SellPrice:  51.0,
 			Quantity:   "123.4",
 			MinAmount:  "228.0",
 			MaxAmount:  "1337.0",
 			Url:        "https://www.google.com",
 		},
 		SellOrderInfo: markets.Order{
-			Market: "TestOutput",
-			Price:  121.0,
+			Market:    "TestOutput",
+			BuyPrice:  120.0,
+			SellPrice: 121.0,
 		},
 	}
 }

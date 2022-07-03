@@ -37,15 +37,22 @@ type response struct {
 }
 
 func MonitorBinancePrice(orders chan Order) {
-	values := request{1, 1, []string{"Tinkoff", "RosBank"}, nil, nil, "USDT", "RUB", "BUY"}
-	json_data, err := json.Marshal(values)
+	buy_values := request{1, 1, []string{"Tinkoff", "RosBank"}, nil, nil, "USDT", "RUB", "BUY"}
+	json_buy_data, err := json.Marshal(buy_values)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	sell_values := request{1, 1, []string{}, nil, nil, "USDT", "RUB", "SELL"}
+	json_sell_data, err := json.Marshal(sell_values)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	for {
-		resp, err := http.Post("https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search", "application/json", bytes.NewBuffer(json_data))
+		resp, err := http.Post("https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search", "application/json", bytes.NewBuffer(json_buy_data))
 
 		if err != nil {
 			log.Fatal(err)
@@ -55,21 +62,37 @@ func MonitorBinancePrice(orders chan Order) {
 
 		json.NewDecoder(resp.Body).Decode(&resp_json)
 
-		price, err := strconv.ParseFloat(resp_json.Data[0].Adv.Price, 64)
+		buy_price, err := strconv.ParseFloat(resp_json.Data[0].Adv.Price, 64)
 
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		bestOrder := Order{}
-		bestOrder.Market = "Binance"
-		bestOrder.SellerName = resp_json.Data[0].Advertiser["nickName"]
-		bestOrder.Price = price
-		bestOrder.MaxAmount = resp_json.Data[0].Adv.MaxSingleTransAmount
-		bestOrder.MinAmount = resp_json.Data[0].Adv.MinSingleTransAmount
-		bestOrder.Quantity = resp_json.Data[0].Adv.TradableQuantity
-		bestOrder.Url = fmt.Sprintf("https://p2p.binance.com/en/advertiserDetail?advertiserNo=%s", resp_json.Data[0].Advertiser["userNo"])
+		resp, err = http.Post("https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search", "application/json", bytes.NewBuffer(json_sell_data))
 
-		orders <- bestOrder
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		var resp_json_sell response
+
+		json.NewDecoder(resp.Body).Decode(&resp_json_sell)
+
+		sell_price, err := strconv.ParseFloat(resp_json_sell.Data[0].Adv.Price, 64)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		orders <- Order{
+			"Binance",
+			resp_json.Data[0].Advertiser["nickName"],
+			buy_price,
+			sell_price,
+			resp_json.Data[0].Adv.TradableQuantity,
+			resp_json.Data[0].Adv.MaxSingleTransAmount,
+			resp_json.Data[0].Adv.MinSingleTransAmount,
+			fmt.Sprintf("https://p2p.binance.com/en/advertiserDetail?advertiserNo=%s", resp_json.Data[0].Advertiser["userNo"]),
+		}
 	}
 }

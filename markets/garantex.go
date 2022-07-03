@@ -9,11 +9,13 @@ import (
 )
 
 type Ask struct {
-	Price string `json:"price"`
+	Price  string `json:"price"`
+	Volume string
 }
 
 type Depth struct {
 	Asks []Ask `json:"asks"`
+	Bids []Ask
 }
 
 func MonitorGarantexPrice(orders chan Order) {
@@ -35,7 +37,12 @@ func MonitorGarantexPrice(orders chan Order) {
 		json.Unmarshal(body, &depth)
 		resp.Body.Close()
 
-		price, err := strconv.ParseFloat(depth.Asks[0].Price, 64)
+		buy_price, err := strconv.ParseFloat(depth.Asks[0].Price, 64)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		sell_price, err := strconv.ParseFloat(depth.Bids[0].Price, 64)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -43,8 +50,9 @@ func MonitorGarantexPrice(orders chan Order) {
 		bestOrder := Order{
 			"Garantex",
 			"Market",
-			price,
-			"-",
+			buy_price,
+			sell_price,
+			depth.Bids[0].Volume,
 			"-",
 			"-",
 			"https://garantex.io/trading/usdtrub",

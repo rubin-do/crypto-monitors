@@ -8,15 +8,16 @@ func TestGetGarantexOrder(t *testing.T) {
 	go MonitorGarantexPrice(orders)
 
 	order, ok := <-orders
-	price := order.Price
+	price := order.BuyPrice
 
 	if !ok || price <= 0. || price > 1000. {
 		t.Errorf("Failed getting binance price, got %g!", price)
 	}
 
-	t.Logf("Username: %s\nPrice: %g\nQuantity: %s\nMin: %s\nMax: %s\nUrl: %s\n",
+	t.Logf("Username: %s\nBuyPrice: %g\nSellPrice: %g\nQuantity: %s\nMin: %s\nMax: %s\nUrl: %s\n",
 		order.SellerName,
-		order.Price,
+		order.BuyPrice,
+		order.SellPrice,
 		order.Quantity,
 		order.MinAmount,
 		order.MaxAmount,

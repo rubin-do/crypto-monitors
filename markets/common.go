@@ -3,7 +3,8 @@ package markets
 type Order struct {
 	Market     string
 	SellerName string
-	Price      float64
+	BuyPrice   float64
+	SellPrice  float64
 	Quantity   string
 	MinAmount  string
 	MaxAmount  string

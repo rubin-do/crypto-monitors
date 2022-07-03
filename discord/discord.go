@@ -27,12 +27,12 @@ func DiscordSender(data chan BestOrderPair) {
 			SetTitle(pair.BuyOrderInfo.Market).
 			SetAuthor(pair.BuyOrderInfo.SellerName, "", "").
 			SetURL(pair.BuyOrderInfo.Url).
-			SetFooterText(fmt.Sprintf("Spread: %g", pair.SellOrderInfo.Price-pair.BuyOrderInfo.Price)).
-			AddField("Price", fmt.Sprintf("%g", pair.BuyOrderInfo.Price), false).
+			SetFooterText(fmt.Sprintf("Spread: %g", pair.SellOrderInfo.SellPrice-pair.BuyOrderInfo.BuyPrice)).
+			AddField("Price", fmt.Sprintf("%g", pair.BuyOrderInfo.BuyPrice), false).
 			AddField("Quantity", pair.BuyOrderInfo.Quantity, false).
 			AddField("MinAmount", pair.BuyOrderInfo.MinAmount, false).
 			AddField("MaxAmount", pair.BuyOrderInfo.MaxAmount, false).
-			AddField(pair.SellOrderInfo.Market, fmt.Sprintf("%g", pair.SellOrderInfo.Price), false).
+			AddField(pair.SellOrderInfo.Market, fmt.Sprintf("%g", pair.SellOrderInfo.SellPrice), false).
 			SetTimestamp(time.Now()).
 			Build()})
 

@@ -4,10 +4,9 @@ import (
 	"log"
 	"monitor/monitor/discord"
 	"monitor/monitor/markets"
-	"time"
 )
 
-func FindBestPair(orders []markets.Order) (discord.BestOrderPair, bool) {
+func FindBestPair(orders map[string]markets.Order) (discord.BestOrderPair, bool) {
 	best_pair := discord.BestOrderPair{}
 	spread := 0.
 
@@ -17,7 +16,7 @@ func FindBestPair(orders []markets.Order) (discord.BestOrderPair, bool) {
 				continue
 			}
 
-			cur_spread := order_first.Price - order_second.Price
+			cur_spread := order_first.SellPrice - order_second.BuyPrice
 
 			if cur_spread > spread {
 				best_pair.BuyOrderInfo = order_second
@@ -46,23 +45,30 @@ func main() {
 
 	prevBuyOrder := markets.Order{}
 
+	orders := make(map[string]markets.Order)
+
 	for {
-		garantex_order := <-garantex_orders
-		binance_order := <-binance_orders
-		bybit_order := <-bybit_orders
+		select {
+		case garantex_order := <-garantex_orders:
+			orders["garantex"] = garantex_order
+		case binance_order := <-binance_orders:
+			orders["binance"] = binance_order
+		case bybit_order := <-bybit_orders:
+			orders["bybit"] = bybit_order
+		}
 
-		log.Printf("Binance price: %g, garantex price: %g, bybit price: %g", binance_order.Price, garantex_order.Price, bybit_order.Price)
+		best_pair, report := FindBestPair(orders)
 
-		best_pair, report := FindBestPair([]markets.Order{garantex_order, binance_order, bybit_order})
-
-		log.Println(best_pair)
+		if report {
+			log.Println(orders)
+			log.Println(best_pair)
+		}
 
 		if report && prevBuyOrder != best_pair.BuyOrderInfo {
 			prevBuyOrder = best_pair.BuyOrderInfo
 			discordOrders <- best_pair
 		}
 
-		time.Sleep(10 * time.Second)
 	}
 }
 

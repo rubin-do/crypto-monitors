@@ -37,6 +37,11 @@ func MonitorGarantexPrice(orders chan Order) {
 		json.Unmarshal(body, &depth)
 		resp.Body.Close()
 
+		// handle garantex strange behavior
+		if len(depth.Asks) == 0 {
+			continue
+		}
+
 		buy_price, err := strconv.ParseFloat(depth.Asks[0].Price, 64)
 		if err != nil {
 			log.Fatal(err)

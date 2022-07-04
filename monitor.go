@@ -60,8 +60,10 @@ func main() {
 		best_pair, report := FindBestPair(orders)
 
 		if report {
-			log.Println(orders)
-			log.Println(best_pair)
+			for name, order := range orders {
+				log.Printf("%s: %g,", name, order.BuyPrice)
+			}
+			log.Println()
 		}
 
 		if report && prevBuyOrder != best_pair.BuyOrderInfo {

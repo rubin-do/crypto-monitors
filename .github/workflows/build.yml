@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Download Files
         uses: actions/checkout@v1
+      - name: Update Golang
+        run: ./update-golang.sh
       - name: Run Tests
         run: go test ./markets ./discord -v -count=1
       - name: Build

@@ -11,12 +11,8 @@ jobs:
     steps:
       - name: Download Files
         uses: actions/checkout@v1
-      - name: Update Golang
-        run: ./update-golang.sh
-      - name: Run Tests
-        run: go test ./markets ./discord -v -count=1
-      - name: Build
-        run: go build -v -o /usr/local/bin/monitor .
+      - name: Run Tests and Build
+        run: docker build -t myimage . && docker create -ti --name builder myimage bash && docker cp builder:/usr/local/bin/monitor /usr/local/bin/monitor && docker rm -rf builder 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:

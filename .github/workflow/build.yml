@@ -1,0 +1,23 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  build:
+    runs-on: go-latest
+    steps:
+      - name: Download Files
+        uses: actions/checkout@v1
+      - name: Run Tests
+        run: go test ./markets ./discord -v -count=1
+      - name: Build
+        run: go build -v -o /usr/local/bin/monitor .
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+                name: monitor
+                path: /usr/local/bin/monitor
+                retention-days: 10

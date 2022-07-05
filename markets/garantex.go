@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type Ask struct {
@@ -18,12 +19,14 @@ type Depth struct {
 	Bids []Ask
 }
 
-func MonitorGarantexPrice(orders chan Order) {
+func MonitorGarantexPrice(orders chan<- Order) {
 	for {
 		resp, err := http.Get("https://garantex.io/api/v2/depth?market=usdtrub")
 
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
+			time.Sleep(60 * time.Second)
+			continue
 		}
 
 		body, err := ioutil.ReadAll(resp.Body)
@@ -65,5 +68,6 @@ func MonitorGarantexPrice(orders chan Order) {
 
 		orders <- bestOrder
 
+		time.Sleep(2 * time.Second)
 	}
 }

@@ -55,7 +55,7 @@ func BinancePostRequest(json_data []byte) (response, float64, error) {
 	return resp, price, nil
 }
 
-func MonitorBinancePrice(orders chan Order) {
+func MonitorBinancePrice(orders chan<- Order) {
 	buy_values := request{1, 1, []string{"Tinkoff", "RosBank"}, nil, nil, "USDT", "RUB", "BUY"}
 	json_buy_data, err := json.Marshal(buy_values)
 
@@ -88,8 +88,8 @@ func MonitorBinancePrice(orders chan Order) {
 			price_buy,
 			price_sell,
 			resp_buy.Data[0].Adv.TradableQuantity,
-			resp_buy.Data[0].Adv.MaxSingleTransAmount,
 			resp_buy.Data[0].Adv.MinSingleTransAmount,
+			resp_buy.Data[0].Adv.MaxSingleTransAmount,
 			fmt.Sprintf("https://p2p.binance.com/en/advertiserDetail?advertiserNo=%s", resp_buy.Data[0].Advertiser["userNo"]),
 		}
 	}

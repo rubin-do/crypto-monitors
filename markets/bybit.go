@@ -28,7 +28,7 @@ type response_bybit struct {
 	Result   results
 }
 
-func MonitorByBitPrice(orders chan Order) {
+func MonitorByBitPrice(orders chan<- Order) {
 	values := url.Values{
 		"userId":     {""},
 		"tokenId":    {"USDT"},

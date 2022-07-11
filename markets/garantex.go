@@ -56,6 +56,7 @@ func MonitorGarantexPrice(orders chan<- Order) {
 		}
 
 		bestOrder := Order{
+			"Null",
 			"Garantex",
 			"Market",
 			buy_price,

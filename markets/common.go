@@ -1,6 +1,7 @@
 package markets
 
 type Order struct {
+	ItemId     string
 	Market     string
 	SellerName string
 	BuyPrice   float64

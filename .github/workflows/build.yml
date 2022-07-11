@@ -16,6 +16,6 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
-                name: monitor
-                path: /usr/local/bin/monitor
-                retention-days: 10
+            name: monitor
+            path: /usr/local/bin/monitor
+            retention-days: 10

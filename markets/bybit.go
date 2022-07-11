@@ -10,6 +10,7 @@ import (
 )
 
 type order_by_bit struct {
+	Id           string
 	Price        string
 	LastQuantity string
 	MinAmount    string
@@ -33,7 +34,7 @@ func MonitorByBitPrice(orders chan<- Order) {
 		"userId":     {""},
 		"tokenId":    {"USDT"},
 		"currencyId": {"RUB"},
-		"payment":    {"14"},
+		"payment":    {"75"},
 		"side":       {"1"},
 		"size":       {"10"},
 		"page":       {"1"},
@@ -77,6 +78,7 @@ func MonitorByBitPrice(orders chan<- Order) {
 		}
 
 		orders <- Order{
+			response_json.Result.Items[0].Id,
 			"ByBit",
 			response_json.Result.Items[0].NickName,
 			buy_price,

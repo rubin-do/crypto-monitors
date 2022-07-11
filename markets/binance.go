@@ -83,6 +83,7 @@ func MonitorBinancePrice(orders chan<- Order) {
 		}
 
 		orders <- Order{
+			"Null",
 			"Binance",
 			resp_buy.Data[0].Advertiser["nickName"],
 			price_buy,

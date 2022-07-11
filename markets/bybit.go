@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-type order_by_bit struct {
+type orderByBit struct {
 	Id           string
 	Price        string
 	LastQuantity string
@@ -21,12 +21,12 @@ type order_by_bit struct {
 
 type results struct {
 	Count int
-	Items []order_by_bit
+	Items []orderByBit
 }
 
-type response_bybit struct {
-	Ret_code int
-	Result   results
+type responseBybit struct {
+	RetCode int
+	Result  results
 }
 
 func MonitorByBitPrice(orders chan<- Order) {
@@ -51,11 +51,11 @@ func MonitorByBitPrice(orders chan<- Order) {
 			log.Fatal(resp, err)
 		}
 
-		var response_json response_bybit
+		var responseJson responseBybit
 
-		json.NewDecoder(resp.Body).Decode(&response_json)
+		json.NewDecoder(resp.Body).Decode(&responseJson)
 
-		buy_price, err := strconv.ParseFloat(response_json.Result.Items[0].Price, 64)
+		buyPrice, err := strconv.ParseFloat(responseJson.Result.Items[0].Price, 64)
 
 		if err != nil {
 			log.Fatal(err)
@@ -68,25 +68,25 @@ func MonitorByBitPrice(orders chan<- Order) {
 			log.Fatal(err)
 		}
 
-		var response_json_sell response_bybit
+		var responseJsonSell responseBybit
 
-		json.NewDecoder(resp.Body).Decode(&response_json_sell)
+		json.NewDecoder(resp.Body).Decode(&responseJsonSell)
 
-		sell_price, err := strconv.ParseFloat(response_json_sell.Result.Items[0].Price, 64)
+		sellPrice, err := strconv.ParseFloat(responseJsonSell.Result.Items[0].Price, 64)
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		orders <- Order{
-			response_json.Result.Items[0].Id,
+			responseJson.Result.Items[0].Id,
 			"ByBit",
-			response_json.Result.Items[0].NickName,
-			buy_price,
-			sell_price,
-			response_json.Result.Items[0].LastQuantity,
-			response_json.Result.Items[0].MinAmount,
-			response_json.Result.Items[0].MaxAmount,
-			fmt.Sprintf("https://www.bybit.com/fiat/trade/otc/profile/%s/USDT/RUB", response_json.Result.Items[0].UserId),
+			responseJson.Result.Items[0].NickName,
+			buyPrice,
+			sellPrice,
+			responseJson.Result.Items[0].LastQuantity,
+			responseJson.Result.Items[0].MinAmount,
+			responseJson.Result.Items[0].MaxAmount,
+			fmt.Sprintf("https://www.bybit.com/fiat/trade/otc/profile/%s/USDT/RUB", responseJson.Result.Items[0].UserId),
 		}
 	}
 

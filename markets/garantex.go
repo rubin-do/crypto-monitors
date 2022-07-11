@@ -45,12 +45,12 @@ func MonitorGarantexPrice(orders chan<- Order) {
 			continue
 		}
 
-		buy_price, err := strconv.ParseFloat(depth.Asks[0].Price, 64)
+		buyPrice, err := strconv.ParseFloat(depth.Asks[0].Price, 64)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		sell_price, err := strconv.ParseFloat(depth.Bids[0].Price, 64)
+		sellPrice, err := strconv.ParseFloat(depth.Bids[0].Price, 64)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -59,8 +59,8 @@ func MonitorGarantexPrice(orders chan<- Order) {
 			"Null",
 			"Garantex",
 			"Market",
-			buy_price,
-			sell_price,
+			buyPrice,
+			sellPrice,
 			depth.Bids[0].Volume,
 			"-",
 			"-",

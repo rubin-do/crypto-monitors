@@ -36,15 +36,15 @@ type response struct {
 	Data []first
 }
 
-func BinancePostRequest(json_data []byte) (response, float64, error) {
-	resp_raw, err := http.Post("https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search", "application/json", bytes.NewBuffer(json_data))
+func binancePostRequest(jsonData []byte) (response, float64, error) {
+	respRaw, err := http.Post("https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search", "application/json", bytes.NewBuffer(jsonData))
 
 	if err != nil {
 		return response{}, 0., err
 	}
 
 	var resp response
-	json.NewDecoder(resp_raw.Body).Decode(&resp)
+	json.NewDecoder(respRaw.Body).Decode(&resp)
 
 	price, err := strconv.ParseFloat(resp.Data[0].Adv.Price, 64)
 
@@ -56,27 +56,27 @@ func BinancePostRequest(json_data []byte) (response, float64, error) {
 }
 
 func MonitorBinancePrice(orders chan<- Order) {
-	buy_values := request{1, 1, []string{"Tinkoff", "RosBank"}, nil, nil, "USDT", "RUB", "BUY"}
-	json_buy_data, err := json.Marshal(buy_values)
+	buyValues := request{1, 1, []string{"Tinkoff", "RosBank"}, nil, nil, "USDT", "RUB", "BUY"}
+	jsonBuyData, err := json.Marshal(buyValues)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	sell_values := request{1, 1, []string{}, nil, nil, "USDT", "RUB", "SELL"}
-	json_sell_data, err := json.Marshal(sell_values)
+	sellValues := request{1, 1, []string{}, nil, nil, "USDT", "RUB", "SELL"}
+	jsonSellData, err := json.Marshal(sellValues)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	for {
-		resp_buy, price_buy, err := BinancePostRequest(json_buy_data)
+		respBuy, priceBuy, err := binancePostRequest(jsonBuyData)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		_, price_sell, err := BinancePostRequest(json_sell_data)
+		_, priceSell, err := binancePostRequest(jsonSellData)
 
 		if err != nil {
 			log.Fatal(err)
@@ -85,13 +85,13 @@ func MonitorBinancePrice(orders chan<- Order) {
 		orders <- Order{
 			"Null",
 			"Binance",
-			resp_buy.Data[0].Advertiser["nickName"],
-			price_buy,
-			price_sell,
-			resp_buy.Data[0].Adv.TradableQuantity,
-			resp_buy.Data[0].Adv.MinSingleTransAmount,
-			resp_buy.Data[0].Adv.MaxSingleTransAmount,
-			fmt.Sprintf("https://p2p.binance.com/en/advertiserDetail?advertiserNo=%s", resp_buy.Data[0].Advertiser["userNo"]),
+			respBuy.Data[0].Advertiser["nickName"],
+			priceBuy,
+			priceSell,
+			respBuy.Data[0].Adv.TradableQuantity,
+			respBuy.Data[0].Adv.MinSingleTransAmount,
+			respBuy.Data[0].Adv.MaxSingleTransAmount,
+			fmt.Sprintf("https://p2p.binance.com/en/advertiserDetail?advertiserNo=%s", respBuy.Data[0].Advertiser["userNo"]),
 		}
 	}
 }

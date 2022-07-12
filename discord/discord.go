@@ -32,6 +32,7 @@ func DiscordSender(data chan BestOrderPair) {
 			AddField("Quantity", pair.BuyOrderInfo.Quantity, false).
 			AddField("MinAmount", pair.BuyOrderInfo.MinAmount, false).
 			AddField("MaxAmount", pair.BuyOrderInfo.MaxAmount, false).
+			AddField("PaymentMethods", pair.BuyOrderInfo.PaymentMethods, false).
 			AddField(pair.SellOrderInfo.Market, fmt.Sprintf("%g", pair.SellOrderInfo.SellPrice), false).
 			SetTimestamp(time.Now()).
 			Build()})

@@ -3,6 +3,7 @@ package discord
 import (
 	"monitor/monitor/markets"
 	"testing"
+	"time"
 )
 
 func TestDiscord(t *testing.T) {
@@ -26,4 +27,5 @@ func TestDiscord(t *testing.T) {
 			SellPrice: 121.0,
 		},
 	}
+	time.Sleep(5)
 }

@@ -20,9 +20,14 @@ type request struct {
 	TradeType     string   `json:"tradeType"`
 }
 
+type PayMethod struct {
+	PayType string
+}
+
 type second struct {
 	Price                string
 	TradableQuantity     string
+	TradeMethods         []PayMethod
 	MinSingleTransAmount string
 	MaxSingleTransAmount string
 }
@@ -55,8 +60,16 @@ func binancePostRequest(jsonData []byte) (response, float64, error) {
 	return resp, price, nil
 }
 
+func parsePaymentMethods(order second) string {
+	var paymentMethods string
+	for _, method := range order.TradeMethods {
+		paymentMethods += method.PayType
+	}
+	return paymentMethods
+}
+
 func MonitorBinancePrice(orders chan<- Order) {
-	buyValues := request{1, 1, []string{"Tinkoff", "RosBank"}, nil, nil, "USDT", "RUB", "BUY"}
+	buyValues := request{1, 1, []string{"Tinkoff", "RosBank", "RaiffeisenBankRussia"}, nil, nil, "USDT", "RUB", "BUY"}
 	jsonBuyData, err := json.Marshal(buyValues)
 
 	if err != nil {
@@ -91,6 +104,7 @@ func MonitorBinancePrice(orders chan<- Order) {
 			respBuy.Data[0].Adv.TradableQuantity,
 			respBuy.Data[0].Adv.MinSingleTransAmount,
 			respBuy.Data[0].Adv.MaxSingleTransAmount,
+			parsePaymentMethods(respBuy.Data[0].Adv),
 			fmt.Sprintf("https://p2p.binance.com/en/advertiserDetail?advertiserNo=%s", respBuy.Data[0].Advertiser["userNo"]),
 		}
 	}

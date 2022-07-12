@@ -16,7 +16,7 @@ func TestGetBinanceOrder(t *testing.T) {
 		t.Errorf("Failed getting binance price, got %g!", price)
 	}
 
-	t.Logf("Id: %s\nUsername: %s\nBuyPrice: %g\nSellPrice: %g\nQuantity: %s\nMin: %s\nMax: %s\nUrl: %s\n",
+	t.Logf("Id: %s\nUsername: %s\nBuyPrice: %g\nSellPrice: %g\nQuantity: %s\nMin: %s\nMax: %s\nPaymentMethods: %s\nUrl: %s\n",
 		order.ItemId,
 		order.SellerName,
 		order.BuyPrice,
@@ -24,6 +24,7 @@ func TestGetBinanceOrder(t *testing.T) {
 		order.Quantity,
 		order.MinAmount,
 		order.MaxAmount,
+		order.PaymentMethods,
 		order.Url,
 	)
 }

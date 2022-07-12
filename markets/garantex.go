@@ -64,6 +64,7 @@ func MonitorGarantexPrice(orders chan<- Order) {
 			depth.Bids[0].Volume,
 			"-",
 			"-",
+			"-",
 			"https://garantex.io/trading/usdtrub",
 		}
 

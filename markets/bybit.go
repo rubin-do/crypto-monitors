@@ -86,6 +86,7 @@ func MonitorByBitPrice(orders chan<- Order) {
 			responseJson.Result.Items[0].LastQuantity,
 			responseJson.Result.Items[0].MinAmount,
 			responseJson.Result.Items[0].MaxAmount,
+			"-",
 			fmt.Sprintf("https://www.bybit.com/fiat/trade/otc/profile/%s/USDT/RUB", responseJson.Result.Items[0].UserId),
 		}
 	}

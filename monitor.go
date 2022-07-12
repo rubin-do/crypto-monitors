@@ -36,32 +36,29 @@ func main() {
 	discordOrders := make(chan discord.BestOrderPair)
 	go discord.DiscordSender(discordOrders)
 
-	garantexOrders := make(chan markets.Order)
-	go markets.MonitorGarantexPrice(garantexOrders)
+	allOrders := make(chan markets.Order)
 
-	binanceOrders := make(chan markets.Order)
-	go markets.MonitorBinancePrice(binanceOrders)
-
-	bybitOrders := make(chan markets.Order)
-	go markets.MonitorByBitPrice(bybitOrders)
-
-	huobiOrders := make(chan markets.Order)
-	go markets.MonitorHuobiPrice(huobiOrders)
+	go markets.MonitorGarantexPrice(allOrders)
+	go markets.MonitorBinancePrice(allOrders)
+	go markets.MonitorByBitPrice(allOrders)
+	go markets.MonitorHuobiPrice(allOrders)
 
 	prevBuyOrder := markets.Order{}
 
 	orders := make(map[string]markets.Order)
 
 	for {
-		select {
-		case garantexOrder := <-garantexOrders:
-			orders["garantex"] = garantexOrder
-		case binanceOrder := <-binanceOrders:
-			orders["binance"] = binanceOrder
-		case bybitOrder := <-bybitOrders:
-			orders["bybit"] = bybitOrder
-		case huobiOrder := <-huobiOrders:
-			orders["huobi"] = huobiOrder
+		currentOrder := <-allOrders
+
+		switch currentOrder.Market {
+		case "Garantex":
+			orders["garantex"] = currentOrder
+		case "Binance":
+			orders["binance"] = currentOrder
+		case "ByBit":
+			orders["bybit"] = currentOrder
+		case "Huobi":
+			orders["huobi"] = currentOrder
 		}
 
 		bestPair, report := FindBestPair(orders)

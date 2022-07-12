@@ -45,6 +45,9 @@ func main() {
 	bybitOrders := make(chan markets.Order)
 	go markets.MonitorByBitPrice(bybitOrders)
 
+	huobiOrders := make(chan markets.Order)
+	go markets.MonitorHuobiPrice(huobiOrders)
+
 	prevBuyOrder := markets.Order{}
 
 	orders := make(map[string]markets.Order)
@@ -57,6 +60,8 @@ func main() {
 			orders["binance"] = binanceOrder
 		case bybitOrder := <-bybitOrders:
 			orders["bybit"] = bybitOrder
+		case huobiOrder := <-huobiOrders:
+			orders["huobi"] = huobiOrder
 		}
 
 		bestPair, report := FindBestPair(orders)

@@ -4,29 +4,31 @@ import (
 	"log"
 	"monitor/monitor/discord"
 	"monitor/monitor/markets"
+	"strconv"
 )
 
 func FindBestPair(orders map[string]markets.Order) (discord.BestOrderPair, bool) {
-	best_pair := discord.BestOrderPair{}
+	bestPair := discord.BestOrderPair{}
 	spread := 0.
 
-	for i, order_first := range orders {
-		for j, order_second := range orders {
+	for i, orderFirst := range orders {
+		for j, orderSecond := range orders {
 			if i == j {
 				continue
 			}
 
-			cur_spread := order_first.SellPrice - order_second.BuyPrice
+			curSpread := orderFirst.SellPrice - orderSecond.BuyPrice
+			quantityBuy, _ := strconv.ParseFloat(orderSecond.Quantity, 64)
 
-			if cur_spread > spread {
-				best_pair.BuyOrderInfo = order_second
-				best_pair.SellOrderInfo = order_first
-				spread = cur_spread
+			if curSpread > spread && orderSecond.BuyPrice*quantityBuy > 1000. {
+				bestPair.BuyOrderInfo = orderSecond
+				bestPair.SellOrderInfo = orderFirst
+				spread = curSpread
 			}
 		}
 	}
 
-	return best_pair, (spread > 1.0)
+	return bestPair, spread > 1.0
 }
 
 func main() {
@@ -34,14 +36,14 @@ func main() {
 	discordOrders := make(chan discord.BestOrderPair)
 	go discord.DiscordSender(discordOrders)
 
-	garantex_orders := make(chan markets.Order)
-	go markets.MonitorGarantexPrice(garantex_orders)
+	garantexOrders := make(chan markets.Order)
+	go markets.MonitorGarantexPrice(garantexOrders)
 
-	binance_orders := make(chan markets.Order)
-	go markets.MonitorBinancePrice(binance_orders)
+	binanceOrders := make(chan markets.Order)
+	go markets.MonitorBinancePrice(binanceOrders)
 
-	bybit_orders := make(chan markets.Order)
-	go markets.MonitorByBitPrice(bybit_orders)
+	bybitOrders := make(chan markets.Order)
+	go markets.MonitorByBitPrice(bybitOrders)
 
 	prevBuyOrder := markets.Order{}
 
@@ -49,15 +51,15 @@ func main() {
 
 	for {
 		select {
-		case garantex_order := <-garantex_orders:
-			orders["garantex"] = garantex_order
-		case binance_order := <-binance_orders:
-			orders["binance"] = binance_order
-		case bybit_order := <-bybit_orders:
-			orders["bybit"] = bybit_order
+		case garantexOrder := <-garantexOrders:
+			orders["garantex"] = garantexOrder
+		case binanceOrder := <-binanceOrders:
+			orders["binance"] = binanceOrder
+		case bybitOrder := <-bybitOrders:
+			orders["bybit"] = bybitOrder
 		}
 
-		best_pair, report := FindBestPair(orders)
+		bestPair, report := FindBestPair(orders)
 
 		if report {
 			for name, order := range orders {
@@ -66,9 +68,9 @@ func main() {
 			log.Println()
 		}
 
-		if report && prevBuyOrder != best_pair.BuyOrderInfo {
-			prevBuyOrder = best_pair.BuyOrderInfo
-			discordOrders <- best_pair
+		if report && prevBuyOrder != bestPair.BuyOrderInfo {
+			prevBuyOrder = bestPair.BuyOrderInfo
+			discordOrders <- bestPair
 		}
 
 	}

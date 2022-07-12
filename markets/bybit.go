@@ -17,6 +17,7 @@ type orderByBit struct {
 	MaxAmount    string
 	UserId       string
 	NickName     string
+	Payments     []int
 }
 
 type results struct {
@@ -29,17 +30,44 @@ type responseBybit struct {
 	Result  results
 }
 
+func findIndexWithPaymentMethods(orders []orderByBit, methods map[int]string) int {
+	for i, order := range orders {
+		for _, methodId := range order.Payments {
+			if _, ok := methods[methodId]; ok {
+				return i
+			}
+		}
+	}
+	return 0
+}
+
+func parsePaymentMethodsByBit(order orderByBit, methods map[int]string) string {
+	var paymentsParsed string
+	for _, paymentId := range order.Payments {
+		if len(paymentsParsed) != 0 {
+			paymentsParsed += ","
+		}
+		paymentName, ok := methods[paymentId]
+		if ok {
+			paymentsParsed += paymentName
+		}
+	}
+	return paymentsParsed
+}
+
 func MonitorByBitPrice(orders chan<- Order) {
 	values := url.Values{
 		"userId":     {""},
 		"tokenId":    {"USDT"},
 		"currencyId": {"RUB"},
-		"payment":    {"75"},
+		"payment":    {""},
 		"side":       {"1"},
-		"size":       {"10"},
+		"size":       {"15"},
 		"page":       {"1"},
 		"amount":     {""},
 	}
+	payments := map[int]string{75: "Tinkoff", 185: "Rosbank", 51: "Payeer",
+		14: "Bank Transfer", 27: "FPS", 64: "Raiffeisenbank", 44: "MTS-Bank"}
 
 	for {
 
@@ -55,7 +83,9 @@ func MonitorByBitPrice(orders chan<- Order) {
 
 		json.NewDecoder(resp.Body).Decode(&responseJson)
 
-		buyPrice, err := strconv.ParseFloat(responseJson.Result.Items[0].Price, 64)
+		firstValid := findIndexWithPaymentMethods(responseJson.Result.Items, payments)
+
+		buyPrice, err := strconv.ParseFloat(responseJson.Result.Items[firstValid].Price, 64)
 
 		if err != nil {
 			log.Fatal(err)
@@ -72,22 +102,23 @@ func MonitorByBitPrice(orders chan<- Order) {
 
 		json.NewDecoder(resp.Body).Decode(&responseJsonSell)
 
-		sellPrice, err := strconv.ParseFloat(responseJsonSell.Result.Items[0].Price, 64)
+		sellValidIndex := findIndexWithPaymentMethods(responseJsonSell.Result.Items, payments)
+		sellPrice, err := strconv.ParseFloat(responseJsonSell.Result.Items[sellValidIndex].Price, 64)
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		orders <- Order{
-			responseJson.Result.Items[0].Id,
+			responseJson.Result.Items[firstValid].Id,
 			"ByBit",
-			responseJson.Result.Items[0].NickName,
+			responseJson.Result.Items[firstValid].NickName,
 			buyPrice,
 			sellPrice,
-			responseJson.Result.Items[0].LastQuantity,
-			responseJson.Result.Items[0].MinAmount,
-			responseJson.Result.Items[0].MaxAmount,
-			"-",
-			fmt.Sprintf("https://www.bybit.com/fiat/trade/otc/profile/%s/USDT/RUB", responseJson.Result.Items[0].UserId),
+			responseJson.Result.Items[firstValid].LastQuantity,
+			responseJson.Result.Items[firstValid].MinAmount,
+			responseJson.Result.Items[firstValid].MaxAmount,
+			parsePaymentMethodsByBit(responseJson.Result.Items[firstValid], payments),
+			fmt.Sprintf("https://www.bybit.com/fiat/trade/otc/profile/%s/USDT/RUB", responseJson.Result.Items[firstValid].UserId),
 		}
 	}
 

@@ -3,9 +3,9 @@ package markets
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type huobiResponse struct {
@@ -28,22 +28,27 @@ const (
 	huobiDataUrl = "https://otc-api.bitderiv.com/v1/data/trade-market?coinId=2&currency=11&tradeType=%s&currPage=1&payMethod=0&acceptOrder=0&country=&blockType=general&online=1&range=0&amount=&onlyTradable=false"
 )
 
-func huobiRequest(url string, orderType string) huobiResponse {
+func huobiRequest(url string, orderType string) (huobiResponse, error) {
 	url = fmt.Sprintf(huobiDataUrl, orderType)
 	resp, err := http.Get(url)
 	if err != nil {
-		log.Fatal(err)
+		return huobiResponse{}, err
 	}
 
 	var respJson huobiResponse
 	json.NewDecoder(resp.Body).Decode(&respJson)
 
-	return respJson
+	return respJson, nil
 }
 
 func MonitorHuobiPrice(orders chan<- Order) {
 	for {
-		dataBuy := huobiRequest(huobiDataUrl, "sell")
+		dataBuy, err := huobiRequest(huobiDataUrl, "sell")
+		if err != nil {
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
 		bestOrderBuy := dataBuy.Data[0]
 		buyPrice, _ := strconv.ParseFloat(bestOrderBuy.Price, 64)
 
@@ -56,7 +61,12 @@ func MonitorHuobiPrice(orders chan<- Order) {
 			paymentMethods += method.Name
 		}
 
-		dataSell := huobiRequest(huobiDataUrl, "buy")
+		dataSell, err := huobiRequest(huobiDataUrl, "buy")
+		if err != nil {
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
 		bestOrderSell := dataSell.Data[0]
 		sellPrice, _ := strconv.ParseFloat(bestOrderSell.Price, 64)
 

@@ -63,6 +63,10 @@ func binancePostRequest(jsonData []byte) (response, float64, error) {
 func parsePaymentMethods(order second) string {
 	var paymentMethods string
 	for _, method := range order.TradeMethods {
+		if len(paymentMethods) != 0 {
+			paymentMethods += ","
+		}
+		
 		paymentMethods += method.PayType
 	}
 	return paymentMethods

@@ -27,8 +27,13 @@ func FindBestPair(orders map[string]markets.Order) (discord.BestOrderPair, bool)
 			}
 		}
 	}
+	
+	needToReport := spread > 1.0
+	if bestPair.SellOrderInfo.Market == "Huobi" && spread > 7.0 {
+		needToReport = false
+	}
 
-	return bestPair, spread > 1.0
+	return bestPair, needToReport
 }
 
 func main() {

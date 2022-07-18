@@ -17,13 +17,16 @@ type BestOrderPair struct {
 }
 
 func DiscordSender(data chan BestOrderPair) {
-
-	client := webhook.New(snowflake.ID(990357629031309392), "UnIMrvtS8_NIdtJpwlNl11Mxn38N1ddlfUKPyQ8iZ4ctDz1NBLtPf74a24TvMbhj61Qv")
+	webhooks := make(map[string]webhook.Client)
+	webhooks["Binance"] = webhook.New(snowflake.ID(998671929877741659), "DZf3Md9HkReJmCr8OvuyYj-wo9otJPxCHe4HvY9ikr5qWJQxGJnR9J2KPqRIBD2ULPo4")
+	webhooks["Garantex"] = webhook.New(snowflake.ID(998672189274464336), "XOkqMObkLJYLGsE_Iea8ycYRvp-Ib__glMACzr5GM-FCVWCpkTq3Ov3LYGIVgC3XcVUA")
+	webhooks["Huobi"] = webhook.New(snowflake.ID(998672704418893834), "6kQTTc-8nveZQzoWxBRdpuQdTUGuEL5xF8HwefHjqBIRYjY1sbl4naplVbgFcX3quAH8")
+	webhooks["ByBit"] = webhook.New(snowflake.ID(991651258299588658), "w8-zzyWDeEsdOJDAl0nVHVvPaXa6Q6Z8dlsT0pNyXOtAJCeB1u0_oQqRqUn_2Djm6wTn")
 
 	for {
 		pair := <-data
 
-		_, err := client.CreateEmbeds([]discord.Embed{discord.NewEmbedBuilder().
+		_, err := webhooks[pair.BuyOrderInfo.Market].CreateEmbeds([]discord.Embed{discord.NewEmbedBuilder().
 			SetTitle(pair.BuyOrderInfo.Market).
 			SetAuthor(pair.BuyOrderInfo.SellerName, "", "").
 			SetURL(pair.BuyOrderInfo.Url).

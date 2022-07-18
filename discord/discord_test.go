@@ -12,7 +12,7 @@ func TestDiscord(t *testing.T) {
 
 	discordOrders <- BestOrderPair{
 		BuyOrderInfo: markets.Order{
-			Market:     "TestSource",
+			Market:     "Binance",
 			SellerName: "TestSeller",
 			BuyPrice:   50.0,
 			SellPrice:  51.0,

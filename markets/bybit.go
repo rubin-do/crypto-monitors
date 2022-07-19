@@ -91,29 +91,12 @@ func MonitorByBitPrice(orders chan<- Order) {
 			log.Fatal(err)
 		}
 
-		// fetch sell prices
-		values["side"] = []string{"0"}
-		resp, err = http.PostForm("https://api2.bybit.com/spot/api/otc/item/list", values)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		var responseJsonSell responseBybit
-
-		json.NewDecoder(resp.Body).Decode(&responseJsonSell)
-
-		sellValidIndex := findIndexWithPaymentMethods(responseJsonSell.Result.Items, payments)
-		sellPrice, err := strconv.ParseFloat(responseJsonSell.Result.Items[sellValidIndex].Price, 64)
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		orders <- Order{
 			responseJson.Result.Items[firstValid].Id,
 			"ByBit",
 			responseJson.Result.Items[firstValid].NickName,
 			buyPrice,
-			sellPrice,
+			0,
 			responseJson.Result.Items[firstValid].LastQuantity,
 			responseJson.Result.Items[firstValid].MinAmount,
 			responseJson.Result.Items[firstValid].MaxAmount,

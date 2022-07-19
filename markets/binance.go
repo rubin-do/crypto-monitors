@@ -66,7 +66,7 @@ func parsePaymentMethods(order second) string {
 		if len(paymentMethods) != 0 {
 			paymentMethods += ","
 		}
-		
+
 		paymentMethods += method.PayType
 	}
 	return paymentMethods
@@ -80,9 +80,6 @@ func MonitorBinancePrice(orders chan<- Order) {
 		log.Fatal(err)
 	}
 
-	sellValues := request{1, 1, []string{}, nil, nil, "USDT", "RUB", "SELL"}
-	jsonSellData, err := json.Marshal(sellValues)
-
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -93,18 +90,12 @@ func MonitorBinancePrice(orders chan<- Order) {
 			log.Fatal(err)
 		}
 
-		_, priceSell, err := binancePostRequest(jsonSellData)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		orders <- Order{
 			"Null",
 			"Binance",
 			respBuy.Data[0].Advertiser["nickName"],
 			priceBuy,
-			priceSell,
+			0,
 			respBuy.Data[0].Adv.TradableQuantity,
 			respBuy.Data[0].Adv.MinSingleTransAmount,
 			respBuy.Data[0].Adv.MaxSingleTransAmount,

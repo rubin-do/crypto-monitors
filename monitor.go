@@ -7,33 +7,22 @@ import (
 	"strconv"
 )
 
-func FindBestPair(orders map[string]markets.Order) (discord.BestOrderPair, bool) {
-	bestPair := discord.BestOrderPair{}
+func FindBestPair(orders map[string]markets.Order, garantex markets.Order) (discord.BestOrderPair, bool) {
+	bestPair := discord.BestOrderPair{SellOrderInfo: garantex}
 	spread := 0.
 
-	for i, orderFirst := range orders {
-		for j, orderSecond := range orders {
-			if i == j {
-				continue
-			}
+	for _, orderBuy := range orders {
 
-			curSpread := orderFirst.SellPrice - orderSecond.BuyPrice
-			quantityBuy, _ := strconv.ParseFloat(orderSecond.Quantity, 64)
+		curSpread := garantex.SellPrice - orderBuy.BuyPrice
+		quantityBuy, _ := strconv.ParseFloat(orderBuy.Quantity, 64)
 
-			if curSpread > spread && orderSecond.BuyPrice*quantityBuy > 1000. {
-				bestPair.BuyOrderInfo = orderSecond
-				bestPair.SellOrderInfo = orderFirst
-				spread = curSpread
-			}
+		if curSpread > spread && orderBuy.BuyPrice*quantityBuy > 1000. {
+			bestPair.BuyOrderInfo = orderBuy
+			spread = curSpread
 		}
 	}
-	
-	needToReport := spread > 1.0
-	if bestPair.SellOrderInfo.Market == "Huobi" && spread > 7.0 {
-		needToReport = false
-	}
 
-	return bestPair, needToReport
+	return bestPair, spread > 1.0
 }
 
 func main() {
@@ -66,7 +55,7 @@ func main() {
 			orders["huobi"] = currentOrder
 		}
 
-		bestPair, report := FindBestPair(orders)
+		bestPair, report := FindBestPair(orders, orders["garantex"])
 
 		if report {
 			for name, order := range orders {

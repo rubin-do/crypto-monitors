@@ -61,21 +61,12 @@ func MonitorHuobiPrice(orders chan<- Order) {
 			paymentMethods += method.Name
 		}
 
-		dataSell, err := huobiRequest(huobiDataUrl, "buy")
-		if err != nil {
-			time.Sleep(1 * time.Second)
-			continue
-		}
-
-		bestOrderSell := dataSell.Data[0]
-		sellPrice, _ := strconv.ParseFloat(bestOrderSell.Price, 64)
-
 		orders <- Order{
 			"-",
 			"Huobi",
 			bestOrderBuy.UserName,
 			buyPrice,
-			sellPrice,
+			0,
 			bestOrderBuy.TradeCount,
 			bestOrderBuy.MinTradeLimit,
 			bestOrderBuy.MaxTradeLimit,
